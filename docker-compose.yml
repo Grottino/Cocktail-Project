@@ -1,0 +1,40 @@
+
+services:
+  cocktail-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cocktail-java-app
+    ports:
+      - "8080:8080"
+    environment:
+      - JAVA_OPTS=-Xmx512m -Xms256m
+    networks:
+      - cocktail-network
+    restart: unless-stopped
+
+  # Database MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: cocktail-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpass
+      - MYSQL_DATABASE=init
+      - MYSQL_USER=cocktail_user
+      - MYSQL_PASSWORD=cocktail_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    networks:
+      - cocktail-network
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
+
+networks:
+  cocktail-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
