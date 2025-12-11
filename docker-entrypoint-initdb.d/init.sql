@@ -12,7 +12,7 @@ USE init;
 -- Contiene le informazioni di base sui cocktail
 -- ============================================
 CREATE TABLE cocktail (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   nome VARCHAR(150) NOT NULL,
   descrizione TEXT,
   tempo_preparazione_minutes INT,
@@ -25,7 +25,7 @@ CREATE TABLE cocktail (
 -- disponibili per preparare i cocktail
 -- ============================================
 CREATE TABLE ingredienti (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   nome VARCHAR(150) NOT NULL UNIQUE
 );
 
@@ -36,9 +36,9 @@ CREATE TABLE ingredienti (
 -- con quantità, unità di misura e istruzione
 -- ============================================
 CREATE TABLE preparazione (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  cocktail_id INT NOT NULL,
-  ingrediente_id INT NOT NULL,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  cocktail_id BIGINT NOT NULL,
+  ingrediente_id BIGINT NOT NULL,
   quantita DECIMAL(8,2),
   unita VARCHAR(30),
   step_order INT NOT NULL,
