@@ -7,6 +7,15 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
+/**
+ * Entity Preparazione - Rappresenta uno STEP della ricetta
+ * Collega: Cocktail + Ingrediente + Quantità + Istruzioni
+ * 
+ * Esempio per un Margarita:
+ * Step 1: 2 oz tequila
+ * Step 2: 1 oz lime juice
+ * Step 3: 0.5 oz triple sec
+ */
 @Entity
 @Table(name = "preparazione")
 @Data

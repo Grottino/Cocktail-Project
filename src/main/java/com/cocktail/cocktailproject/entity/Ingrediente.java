@@ -5,6 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Entity Ingrediente - Elenco di ingredienti disponibili
+ * Ogni nome è univoco (no duplicati)
+ */
 @Entity
 @Table(name = "ingredienti")
 @Data

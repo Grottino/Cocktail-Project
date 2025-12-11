@@ -5,6 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Entity Cocktail - Rappresenta un cocktail nel database
+ * Contiene nome, descrizione e tempo di preparazione
+ */
 @Entity
 @Table(name = "cocktail")
 @Data
