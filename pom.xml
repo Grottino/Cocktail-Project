@@ -109,6 +109,13 @@
 			<version>2.3.0</version>
 		</dependency>
 
+		<!-- Keycloak Admin Client: gestione utenti via API -->
+		<dependency>
+			<groupId>org.keycloak</groupId>
+			<artifactId>keycloak-admin-client</artifactId>
+			<version>23.0.7</version>
+		</dependency>
+
 		<!-- Test: JUnit, Mockito per unit test -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
