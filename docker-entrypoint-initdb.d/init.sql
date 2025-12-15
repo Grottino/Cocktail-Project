@@ -147,5 +147,28 @@ VALUES
 (5, 17, 2, 'dash', 5, 'Aggiungere un tocco di assenzio e shakerare.');
 
 -- ============================================
+-- TABELLA: user_favoriti
+-- Gestisce i cocktail preferiti degli utenti
+-- L'ID utente viene estratto dal JWT token di Keycloak
+-- ============================================
+CREATE TABLE user_favoriti (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  keycloak_user_id VARCHAR(255) NOT NULL COMMENT 'UUID utente da Keycloak JWT (claim sub)',
+  cocktail_id BIGINT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+  -- Vincoli di integrità referenziale
+  CONSTRAINT fk_favoriti_cocktail FOREIGN KEY (cocktail_id) 
+    REFERENCES cocktail(id) ON DELETE CASCADE,
+  
+  -- Evita duplicati: un utente può salvare lo stesso cocktail una sola volta
+  CONSTRAINT uk_user_cocktail UNIQUE (keycloak_user_id, cocktail_id)
+);
+
+-- Indici per performance
+CREATE INDEX idx_favoriti_user ON user_favoriti(keycloak_user_id);
+CREATE INDEX idx_favoriti_cocktail ON user_favoriti(cocktail_id);
+
+-- ============================================
 -- FINE SCRIPT DATABASE
 -- ============================================
