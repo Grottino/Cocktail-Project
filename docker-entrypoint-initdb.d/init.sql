@@ -155,7 +155,6 @@ CREATE TABLE user_favoriti (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   keycloak_user_id VARCHAR(255) NOT NULL COMMENT 'UUID utente da Keycloak JWT (claim sub)',
   cocktail_id BIGINT NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   
   -- Vincoli di integrità referenziale
   CONSTRAINT fk_favoriti_cocktail FOREIGN KEY (cocktail_id) 
