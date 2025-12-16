@@ -1,6 +1,7 @@
 package com.cocktail.cocktailproject.controller;
 
 import com.cocktail.cocktailproject.dto.CocktailDTO;
+import com.cocktail.cocktailproject.dto.CreateCocktailRequestDTO;
 import com.cocktail.cocktailproject.service.CocktailService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -73,19 +74,36 @@ public class CocktailController {
     }
 
     /**
-     * POST /api/cocktails - Crea un nuovo cocktail
+     * POST /api/cocktails - Crea un nuovo cocktail con ingredienti e preparazione
+     * 
+     * Esempio request:
+     * {
+     *   "nome": "Margarita",
+     *   "descrizione": "Cocktail messicano",
+     *   "tempoPreparazioneMinutes": 5,
+     *   "ingredienti": [
+     *     { "nome": "tequila", "quantita": 2, "unita": "oz" },
+     *     { "nome": "lime juice", "quantita": 1, "unita": "oz" },
+     *     { "nome": "triple sec", "quantita": 0.5, "unita": "oz" }
+     *   ],
+     *   "preparazione": "Versare in shaker con ghiaccio e agitare"
+     * }
      */
-    @Operation(summary = "Crea un nuovo cocktail", description = "Crea e salva un nuovo cocktail nel sistema")
+    @Operation(summary = "Crea un nuovo cocktail con ingredienti", description = "Crea un nuovo cocktail con almeno 2 ingredienti. Gli ingredienti non esistenti vengono creati automaticamente.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Cocktail creato con successo"),
-            @ApiResponse(responseCode = "400", description = "Dati non validi")
+            @ApiResponse(responseCode = "400", description = "Dati non validi - minimo 2 ingredienti richiesti")
     })
     @PostMapping
     public ResponseEntity<CocktailDTO> createCocktail(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Dati del cocktail da creare", required = true)
-            @RequestBody CocktailDTO cocktailDTO) {
-        CocktailDTO created = cocktailService.createCocktail(cocktailDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Dati del cocktail con ingredienti", required = true)
+            @RequestBody CreateCocktailRequestDTO requestDTO) {
+        try {
+            CocktailDTO created = cocktailService.createCocktail(requestDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
     }
 
     /**
