@@ -268,7 +268,7 @@ public class KeycloakUserService {
             usersResource.get(userId).resetPassword(credential);
 
             // Assegna il ruolo "User" di default
-            assignRoleToUser(keycloak, realmResource, userId, "User");
+            assignRoleToUser(keycloak, realmResource, userId, "USER");
 
             response.close();
             return "Utente creato con successo";
