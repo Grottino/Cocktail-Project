@@ -72,6 +72,12 @@
 			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
 		</dependency>
 
+		<!-- JWT Decoder: per decodificare e validare JWT token -->
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-oauth2-jose</artifactId>
+		</dependency>
+
 		<!-- DevTools: auto-restart durante sviluppo -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

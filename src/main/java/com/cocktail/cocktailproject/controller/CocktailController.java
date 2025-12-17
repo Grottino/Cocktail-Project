@@ -9,10 +9,12 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -89,7 +91,12 @@ public class CocktailController {
      *   "preparazione": "Versare in shaker con ghiaccio e agitare"
      * }
      */
-    @Operation(summary = "Crea un nuovo cocktail con ingredienti", description = "Crea un nuovo cocktail con almeno 2 ingredienti. Gli ingredienti non esistenti vengono creati automaticamente.")
+        @PreAuthorize("hasRole('SOLDIER')")
+    @Operation(
+            summary = "Crea un nuovo cocktail con ingredienti",
+            description = "Crea un nuovo cocktail con almeno 2 ingredienti. Gli ingredienti non esistenti vengono creati automaticamente.",
+            security = { @SecurityRequirement(name = "bearerAuth") }
+    )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Cocktail creato con successo"),
             @ApiResponse(responseCode = "400", description = "Dati non validi - minimo 2 ingredienti richiesti")
@@ -109,7 +116,12 @@ public class CocktailController {
     /**
      * PUT /api/cocktails/{id} - Aggiorna un cocktail
      */
-    @Operation(summary = "Aggiorna un cocktail", description = "Aggiorna i dati di un cocktail esistente")
+        @PreAuthorize("hasRole('SOLDIER')")
+    @Operation(
+            summary = "Aggiorna un cocktail",
+            description = "Aggiorna i dati di un cocktail esistente",
+            security = { @SecurityRequirement(name = "bearerAuth") }
+    )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Cocktail aggiornato con successo"),
             @ApiResponse(responseCode = "404", description = "Cocktail non trovato")
@@ -128,7 +140,12 @@ public class CocktailController {
     /**
      * DELETE /api/cocktails/{id} - Elimina un cocktail
      */
-    @Operation(summary = "Elimina un cocktail", description = "Elimina un cocktail dal sistema")
+        @PreAuthorize("hasRole('SOLDIER')")
+    @Operation(
+            summary = "Elimina un cocktail",
+            description = "Elimina un cocktail dal sistema",
+            security = { @SecurityRequirement(name = "bearerAuth") }
+    )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Cocktail eliminato con successo"),
             @ApiResponse(responseCode = "404", description = "Cocktail non trovato")

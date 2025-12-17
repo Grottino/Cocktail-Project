@@ -131,12 +131,7 @@ public class CocktailService {
         return convertToDTO(savedCocktail);
     }
 
-    // Crea un nuovo cocktail (versione legacy)
-    public CocktailDTO createCocktail(CocktailDTO cocktailDTO) {
-        Cocktail cocktail = convertToEntity(cocktailDTO);
-        Cocktail saved = cocktailRepository.save(cocktail);
-        return convertToDTO(saved);
-    }
+   
 
     // Aggiorna un cocktail esistente
     public Optional<CocktailDTO> updateCocktail(Long id, CocktailDTO cocktailDTO) {
@@ -152,6 +147,7 @@ public class CocktailService {
     }
 
     // Elimina un cocktail
+    @Transactional
     public boolean deleteCocktail(Long id) {
         if (cocktailRepository.existsById(id)) {
             preparazioneRepository.deleteByCocktailId(id);
@@ -194,13 +190,5 @@ public class CocktailService {
         return dto;
     }
 
-    // Converte DTO in Entity
-    private Cocktail convertToEntity(CocktailDTO dto) {
-        Cocktail cocktail = new Cocktail();
-        cocktail.setNome(dto.getNome());
-        cocktail.setDescrizione(dto.getDescrizione());
-        cocktail.setTempoPreparazioneMinutes(dto.getTempoPreparazioneMinutes());
-        cocktail.setNote(dto.getNote());
-        return cocktail;
-    }
+    
 }

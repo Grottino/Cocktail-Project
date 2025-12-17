@@ -82,7 +82,9 @@ public class SpringDocConfig {
                     .scheme("bearer")
                     .bearerFormat("JWT")
                     .description("Inserisci il JWT token ottenuto dall'endpoint /api/auth/login. " +
-                               "Non serve aggiungere 'Bearer ' come prefisso, viene aggiunto automaticamente.")))
-            .addSecurityItem(new SecurityRequirement().addList(securitySchemeName));
+                               "Non serve aggiungere 'Bearer ' come prefisso, viene aggiunto automaticamente.")));
+            // Nota: gli endpoint protetti dichiarano @SecurityRequirement(name = "bearerAuth")
+            // su ciascun metodo; se vuoi applicarlo globalmente, decommenta la riga seguente:
+            // .addSecurityItem(new SecurityRequirement().addList(securitySchemeName));
     }
 }
