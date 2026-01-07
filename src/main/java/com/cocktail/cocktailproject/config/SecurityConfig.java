@@ -21,73 +21,75 @@ import org.springframework.security.web.SecurityFilterChain;
  * 2. protectedSecurityFilterChain (Order 2) - Autenticazione JWT obbligatoria:
  *    - GET /api/cocktails (pubblica)
  *    - POST/PUT/DELETE /api/cocktails → Solo admin
- */
-@Configuration
+ */@Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    /**
-     * Catena di filtri per endpoint pubblici - NO OAuth2/JWT
-     */
     @Bean
-    @Order(1)
-    public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
         http
-                .securityMatcher(
-                        "/api/auth/**", 
-                        "/swagger-ui/**", 
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+
+            .authorizeHttpRequests(auth -> auth
+
+                //  ENDPOINT PUBBLICI
+                .requestMatchers(
+                        "/api/auth/**",
+                        "/swagger-ui/**",
                         "/swagger-ui.html",
-                        "/v3/api-docs/**", 
-                        "/api-docs/**", 
-                        "/swagger-resources/**", 
-                        "/webjars/**",
-                        // Endpoint GET pubblici per cocktails (senza autenticazione)
-                        "/api/cocktails",
-                        "/api/cocktails/*",
-                        "/api/cocktails/search"
+                        "/v3/api-docs/**",
+                        "/swagger-resources/**",
+                        "/webjars/**"
+                ).permitAll()
+
+                // GET cocktails pubblico
+                .requestMatchers(HttpMethod.GET, "/api/cocktails/**").permitAll()
+
+                //  ENDPOINT PROTETTI
+                .requestMatchers(HttpMethod.POST, "/api/cocktails/**").hasRole("SOLDIER")
+                .requestMatchers(HttpMethod.PUT, "/api/cocktails/**").hasRole("SOLDIER")
+                .requestMatchers(HttpMethod.DELETE, "/api/cocktails/**").hasRole("SOLDIER")
+
+                // Favoriti → utenti autenticati
+                .requestMatchers("/api/favoriti/**").authenticated()
+
+                // Tutto il resto richiede autenticazione
+                .anyRequest().authenticated()
+            )
+
+            //  JWT (Keycloak)
+            .oauth2ResourceServer(oauth2 ->
+                oauth2.jwt(jwt ->
+                    jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())
                 )
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+            );
 
         return http.build();
     }
 
-    /**
-     * Catena di filtri per endpoint protetti - CON OAuth2/JWT
-     * Solo operazioni di scrittura (POST/PUT/DELETE) richiedono autenticazione
-     */
-    @Bean
-    @Order(2)
-    public SecurityFilterChain protectedSecurityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        // Operazioni di scrittura riservate al ruolo SOLDIER (admin)
-                        .requestMatchers(HttpMethod.POST, "/api/cocktails/**").hasRole("SOLDIER")
-                        .requestMatchers(HttpMethod.PUT, "/api/cocktails/**").hasRole("SOLDIER")
-                        .requestMatchers(HttpMethod.DELETE, "/api/cocktails/**").hasRole("SOLDIER")
-                        // Favoriti: tutti gli utenti autenticati possono gestire i propri favoriti
-                        .requestMatchers("/api/favoriti/**").authenticated()
-                        // Tutto il resto richiede autenticazione
-                        .anyRequest().authenticated())
-                // OAuth2 Resource Server: valida JWT solo per questa catena
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
-
-        return http.build();
-    }
-
-    // Estrae i ruoli dal token JWT (da Keycloak)
+    // Estrazione ruoli dal JWT (Keycloak)
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtGrantedAuthoritiesConverter rolesConverter = new JwtGrantedAuthoritiesConverter();
-        rolesConverter.setAuthorityPrefix("ROLE_");
-        rolesConverter.setAuthoritiesClaimName("realm_access.roles");
 
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-        converter.setJwtGrantedAuthoritiesConverter(rolesConverter);
+
+        // Converter personalizzato per estrarre ruoli da realm_access.roles
+        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            var realmAccess = jwt.getClaimAsMap("realm_access");
+            if (realmAccess != null && realmAccess.containsKey("roles")) {
+                var roles = (java.util.Collection<String>) realmAccess.get("roles");
+                return roles.stream()
+                        .map(role -> new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + role))
+                        .collect(java.util.stream.Collectors.toList());
+            }
+            return java.util.Collections.emptyList();
+        });
+
         return converter;
     }
 }
+

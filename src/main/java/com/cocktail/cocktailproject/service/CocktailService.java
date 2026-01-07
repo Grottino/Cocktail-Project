@@ -2,12 +2,14 @@ package com.cocktail.cocktailproject.service;
 
 import com.cocktail.cocktailproject.dto.CocktailDTO;
 import com.cocktail.cocktailproject.dto.CreateCocktailRequestDTO;
+import com.cocktail.cocktailproject.dto.IngredientiDTO;
 import com.cocktail.cocktailproject.entity.Cocktail;
 import com.cocktail.cocktailproject.entity.Ingrediente;
 import com.cocktail.cocktailproject.entity.Preparazione;
 import com.cocktail.cocktailproject.repository.CocktailRepository;
 import com.cocktail.cocktailproject.repository.IngredienteRepository;
 import com.cocktail.cocktailproject.repository.PreparazioneRepository;
+import com.cocktail.cocktailproject.repository.UserFavoritoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +32,9 @@ public class CocktailService {
 
     @Autowired
     private PreparazioneRepository preparazioneRepository;
+    
+    @Autowired
+    private UserFavoritoRepository userFavoritoRepository;
 
     // Ottieni tutti i cocktail
     public List<CocktailDTO> getAllCocktails() {
@@ -132,6 +137,7 @@ public class CocktailService {
     }
 
     // Crea un nuovo cocktail (versione legacy)
+    @Transactional
     public CocktailDTO createCocktail(CocktailDTO cocktailDTO) {
         Cocktail cocktail = convertToEntity(cocktailDTO);
         Cocktail saved = cocktailRepository.save(cocktail);
@@ -139,6 +145,7 @@ public class CocktailService {
     }
 
     // Aggiorna un cocktail esistente
+    @Transactional
     public Optional<CocktailDTO> updateCocktail(Long id, CocktailDTO cocktailDTO) {
         return cocktailRepository.findById(id)
                 .map(existing -> {
@@ -152,9 +159,14 @@ public class CocktailService {
     }
 
     // Elimina un cocktail
+    @Transactional
     public boolean deleteCocktail(Long id) {
         if (cocktailRepository.existsById(id)) {
+            // Prima elimina i favoriti associati
+            userFavoritoRepository.deleteByCocktailId(id);
+            // Poi elimina la preparazione
             preparazioneRepository.deleteByCocktailId(id);
+            // Infine elimina il cocktail
             cocktailRepository.deleteById(id);
             return true;
         }
@@ -202,5 +214,21 @@ public class CocktailService {
         cocktail.setTempoPreparazioneMinutes(dto.getTempoPreparazioneMinutes());
         cocktail.setNote(dto.getNote());
         return cocktail;
+    }
+
+    private IngredientiDTO convertToDTO(Ingrediente ingrediente) {
+        IngredientiDTO dto = new IngredientiDTO();
+        dto.setNome(ingrediente.getNome());
+        return dto;
+    }
+
+
+
+
+    public List<IngredientiDTO> getAllIngredients() {
+        return ingredienteRepository.findAll()
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 }
