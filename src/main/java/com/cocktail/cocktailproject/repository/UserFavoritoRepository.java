@@ -33,4 +33,10 @@ public interface UserFavoritoRepository extends JpaRepository<UserFavorito, Long
      * Conta quanti favoriti ha un utente
      */
     long countByKeycloakUserId(String keycloakUserId);
+    
+    /**
+     * Elimina tutti i favoriti associati a un cocktail
+     * Utilizzato prima di eliminare un cocktail
+     */
+    void deleteByCocktailId(Long cocktailId);
 }
