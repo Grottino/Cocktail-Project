@@ -21,8 +21,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * CocktailService - Logica di business
- * Contiene CRUD e conversione Entity ↔ DTO
+ * CocktailService - Logica di business per gestione cocktail
+ * 
+ * Responsabilità:
+ * - Operazioni CRUD (Create, Read, Update, Delete) sui cocktail
+ * - Conversione tra Entity (database) e DTO (client)
+ * - Validazione dei dati in ingresso
+ * - Gestione ingredienti e step di preparazione
+ * - Cancellazioni cascata (preparazione + favoriti)
  */
 @Service
 public class CocktailService {
@@ -39,7 +45,10 @@ public class CocktailService {
     @Autowired
     private UserFavoritoRepository userFavoritoRepository;
 
-    // Ottieni tutti i cocktail
+    /**
+     * Ottieni tutti i cocktail senza paginazione (versione legacy)
+     * @return Lista di tutti i cocktail nel database
+     */
     public List<CocktailDTO> getAllCocktails() {
         return cocktailRepository.findAll()
                 .stream()
@@ -47,19 +56,31 @@ public class CocktailService {
                 .collect(Collectors.toList());
     }
 
-    // Ottieni tutti i cocktail con paginazione
+    /**
+     * Ottieni tutti i cocktail con paginazione (metodo raccomandato)
+     * @param pageable Parametri di paginazione (page, size, sort)
+     * @return Pagina di cocktail con metadata (totalElements, totalPages, etc.)
+     */
     public Page<CocktailDTO> getAllCocktails(Pageable pageable) {
         return cocktailRepository.findAll(pageable)
                 .map(this::convertToDTO);
     }
 
-    // Ottieni un cocktail per ID
+    /**
+     * Ottieni un cocktail specifico per ID
+     * @param id ID univoco del cocktail
+     * @return Optional contenente il cocktail se trovato, altrimenti vuoto
+     */
     public Optional<CocktailDTO> getCocktailById(Long id) {
         return cocktailRepository.findById(id)
                 .map(this::convertToDTO);
     }
 
-    // Cerca cocktail per nome
+    /**
+     * Cerca cocktail per nome senza paginazione (versione legacy)
+     * @param nome Stringa da cercare nel nome (case-insensitive, ricerca parziale)
+     * @return Lista di cocktail che corrispondono alla ricerca
+     */
     public List<CocktailDTO> searchByName(String nome) {
         return cocktailRepository.findByNomeContainingIgnoreCase(nome)
                 .stream()
@@ -67,13 +88,34 @@ public class CocktailService {
                 .collect(Collectors.toList());
     }
 
-    // Cerca cocktail per nome con paginazione
+    /**
+     * Cerca cocktail per nome con paginazione (metodo raccomandato)
+     * @param nome Stringa da cercare nel nome (case-insensitive, ricerca parziale)
+     * @param pageable Parametri di paginazione
+     * @return Pagina di cocktail che corrispondono alla ricerca
+     */
     public Page<CocktailDTO> searchByName(String nome, Pageable pageable) {
         return cocktailRepository.findByNomeContainingIgnoreCase(nome, pageable)
                 .map(this::convertToDTO);
     }
 
-    // Crea un nuovo cocktail con ingredienti e preparazione
+    /**
+     * Crea un nuovo cocktail completo con ingredienti e preparazione
+     * 
+     * Validazioni:
+     * - Nome obbligatorio e non vuoto
+     * - Minimo 2 ingredienti richiesti
+     * - No ingredienti duplicati nella stessa richiesta
+     * 
+     * Comportamento:
+     * - Gli ingredienti non esistenti vengono creati automaticamente
+     * - I nomi ingredienti sono normalizzati (lowercase, trim)
+     * - Gli step di preparazione sono numerati automaticamente
+     * 
+     * @param requestDTO Dati del cocktail con lista ingredienti e istruzioni
+     * @return CocktailDTO del cocktail appena creato con tutti i dettagli
+     * @throws IllegalArgumentException Se validazione fallisce
+     */
     @Transactional
     public CocktailDTO createCocktail(CreateCocktailRequestDTO requestDTO) {
         // Validazione: verificare che ci siano almeno 2 ingredienti
@@ -151,7 +193,13 @@ public class CocktailService {
         return convertToDTO(savedCocktail);
     }
 
-    // Crea un nuovo cocktail (versione legacy)
+    /**
+     * Crea un nuovo cocktail (versione legacy senza ingredienti)
+     * Usare createCocktail(CreateCocktailRequestDTO) per creare cocktail completi
+     * 
+     * @param cocktailDTO Dati base del cocktail
+     * @return CocktailDTO del cocktail creato
+     */
     @Transactional
     public CocktailDTO createCocktail(CocktailDTO cocktailDTO) {
         Cocktail cocktail = convertToEntity(cocktailDTO);
@@ -159,7 +207,16 @@ public class CocktailService {
         return convertToDTO(saved);
     }
 
-    // Aggiorna un cocktail esistente (supporta aggiornamenti parziali)
+    /**
+     * Aggiorna un cocktail esistente (supporta aggiornamenti parziali)
+     * 
+     * Solo i campi non-null nel DTO vengono aggiornati.
+     * Gli altri campi mantengono il valore precedente.
+     * 
+     * @param id ID del cocktail da aggiornare
+     * @param cocktailDTO Dati da aggiornare (campi null vengono ignorati)
+     * @return Optional contenente il cocktail aggiornato, o vuoto se non trovato
+     */
     @Transactional
     public Optional<CocktailDTO> updateCocktail(Long id, CocktailDTO cocktailDTO) {
         return cocktailRepository.findById(id)
@@ -182,7 +239,19 @@ public class CocktailService {
                 });
     }
 
-    // Elimina un cocktail
+    /**
+     * Elimina un cocktail e tutti i dati correlati (cancellazione cascata)
+     * 
+     * Sequenza di eliminazione:
+     * 1. Elimina tutti i favoriti che puntano al cocktail
+     * 2. Elimina tutti gli step di preparazione
+     * 3. Elimina il cocktail stesso
+     * 
+     * Nota: gli ingredienti NON vengono eliminati (possono essere usati da altri cocktail)
+     * 
+     * @param id ID del cocktail da eliminare
+     * @return true se eliminato con successo, false se non trovato
+     */
     @Transactional
     public boolean deleteCocktail(Long id) {
         if (cocktailRepository.existsById(id)) {
@@ -197,7 +266,16 @@ public class CocktailService {
         return false;
     }
 
-    // Converte Entity in DTO (aggiunge gli step di ricetta)
+    /**
+     * Converte un'entity Cocktail in DTO per il client
+     * 
+     * Arricchisce i dati con:
+     * - Step di preparazione ordinati
+     * - Nome ingrediente per ogni step (join con tabella ingredienti)
+     * 
+     * @param cocktail Entity dal database
+     * @return DTO completo pronto per il client
+     */
     private CocktailDTO convertToDTO(Cocktail cocktail) {
         CocktailDTO dto = new CocktailDTO();
         dto.setId(cocktail.getId());
@@ -230,7 +308,11 @@ public class CocktailService {
         return dto;
     }
 
-    // Converte DTO in Entity
+    /**
+     * Converte un DTO in entity Cocktail (solo campi base)
+     * @param dto DTO ricevuto dal client
+     * @return Entity Cocktail pronta per il salvataggio
+     */
     private Cocktail convertToEntity(CocktailDTO dto) {
         Cocktail cocktail = new Cocktail();
         cocktail.setNome(dto.getNome());
@@ -240,15 +322,21 @@ public class CocktailService {
         return cocktail;
     }
 
+    /**
+     * Converte un'entity Ingrediente in DTO
+     * @param ingrediente Entity dal database
+     * @return DTO semplice con solo il nome
+     */
     private IngredientiDTO convertToDTO(Ingrediente ingrediente) {
         IngredientiDTO dto = new IngredientiDTO();
         dto.setNome(ingrediente.getNome());
         return dto;
     }
 
-
-
-
+    /**
+     * Ottieni tutti gli ingredienti disponibili senza paginazione (versione legacy)
+     * @return Lista completa di tutti gli ingredienti nel sistema
+     */
     public List<IngredientiDTO> getAllIngredients() {
         return ingredienteRepository.findAll()
                 .stream()
@@ -256,7 +344,11 @@ public class CocktailService {
                 .collect(Collectors.toList());
     }
 
-    // Ottieni tutti gli ingredienti con paginazione
+    /**
+     * Ottieni tutti gli ingredienti disponibili con paginazione (metodo raccomandato)
+     * @param pageable Parametri di paginazione
+     * @return Pagina di ingredienti con metadata
+     */
     public Page<IngredientiDTO> getAllIngredients(Pageable pageable) {
         return ingredienteRepository.findAll(pageable)
                 .map(this::convertToDTO);
