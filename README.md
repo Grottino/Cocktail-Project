@@ -22,7 +22,7 @@ Applicazione Spring Boot che espone API REST per gestire cocktail, ingredienti, 
 ### Avvio con Docker Compose
 ```bash
 # Avvia tutti i servizi (MySQL, Keycloak, App)
-docker compose down # 
+docker compose down #se gia' precedentemente avviato
 docker compose up -d --build
 
 # Verifica lo stato
