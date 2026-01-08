@@ -12,6 +12,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,16 +32,23 @@ public class CocktailController {
     private CocktailService cocktailService;
 
     /**
-     * GET /api/cocktails - Ottiene tutti i cocktail
+     * GET /api/cocktails - Ottiene tutti i cocktail con paginazione
+     * @param page numero pagina (default 0)
+     * @param size numero cocktail per pagina (default 10)
      */
-    @Operation(summary = "Ottieni tutti i cocktail", description = "Restituisce una lista di tutti i cocktail disponibili nel sistema")
+    @Operation(summary = "Ottieni tutti i cocktail", description = "Restituisce una lista paginata di cocktail disponibili nel sistema")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Lista di cocktail recuperata con successo",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = CocktailDTO.class)))
+            @ApiResponse(responseCode = "200", description = "Lista paginata di cocktail recuperata con successo",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class)))
     })
     @GetMapping
-    public ResponseEntity<List<CocktailDTO>> getAllCocktails() {
-        List<CocktailDTO> cocktails = cocktailService.getAllCocktails();
+    public ResponseEntity<Page<CocktailDTO>> getAllCocktails(
+            @Parameter(description = "Numero della pagina (base 0)")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Numero di cocktail per pagina (default 10)")
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<CocktailDTO> cocktails = cocktailService.getAllCocktails(pageable);
         return ResponseEntity.ok(cocktails);
     }
 
@@ -60,17 +70,25 @@ public class CocktailController {
     }
 
     /**
-     * GET /api/cocktails/search?nome=xxx - Cerca cocktail per nome
+     * GET /api/cocktails/search?nome=xxx - Cerca cocktail per nome con paginazione
+     * @param nome nome da cercare
+     * @param page numero pagina (default 0)
+     * @param size numero cocktail per pagina (default 10)
      */
-    @Operation(summary = "Cerca cocktail per nome", description = "Restituisce una lista di cocktail che corrispondono al nome ricercato")
+    @Operation(summary = "Cerca cocktail per nome", description = "Restituisce una lista paginata di cocktail che corrispondono al nome ricercato")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Ricerca completata, lista di cocktail restituita")
+            @ApiResponse(responseCode = "200", description = "Ricerca completata, lista paginata di cocktail restituita")
     })
     @GetMapping("/search")
-    public ResponseEntity<List<CocktailDTO>> searchByName(
+    public ResponseEntity<Page<CocktailDTO>> searchByName(
             @Parameter(description = "Nome del cocktail da cercare")
-            @RequestParam String nome) {
-        List<CocktailDTO> cocktails = cocktailService.searchByName(nome);
+            @RequestParam String nome,
+            @Parameter(description = "Numero della pagina (base 0)")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Numero di cocktail per pagina (default 10)")
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<CocktailDTO> cocktails = cocktailService.searchByName(nome, pageable);
         return ResponseEntity.ok(cocktails);
     }
 
@@ -154,13 +172,18 @@ public class CocktailController {
         return ResponseEntity.notFound().build();
     }
 
-    @Operation(summary =  "Ottieni tutti gli ingredienti disponibili", description = "Restituisce una lista di tutti gli ingredienti presenti nel sistema")
+    @Operation(summary =  "Ottieni tutti gli ingredienti disponibili", description = "Restituisce una lista paginata di tutti gli ingredienti presenti nel sistema")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Lista ingredienti restituita con successo")
+            @ApiResponse(responseCode = "200", description = "Lista paginata ingredienti restituita con successo")
     })
     @GetMapping("/ingredients")
-    public ResponseEntity<List<IngredientiDTO>> getAllIngredients() {
-        List<IngredientiDTO> ingredients = cocktailService.getAllIngredients();
+    public ResponseEntity<Page<IngredientiDTO>> getAllIngredients(
+            @Parameter(description = "Numero della pagina (base 0)")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Numero di ingredienti per pagina (default 10)")
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<IngredientiDTO> ingredients = cocktailService.getAllIngredients(pageable);
         return ResponseEntity.ok(ingredients);
     }
 
