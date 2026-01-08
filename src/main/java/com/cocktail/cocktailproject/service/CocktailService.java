@@ -144,15 +144,24 @@ public class CocktailService {
         return convertToDTO(saved);
     }
 
-    // Aggiorna un cocktail esistente
+    // Aggiorna un cocktail esistente (supporta aggiornamenti parziali)
     @Transactional
     public Optional<CocktailDTO> updateCocktail(Long id, CocktailDTO cocktailDTO) {
         return cocktailRepository.findById(id)
                 .map(existing -> {
-                    existing.setNome(cocktailDTO.getNome());
-                    existing.setDescrizione(cocktailDTO.getDescrizione());
-                    existing.setTempoPreparazioneMinutes(cocktailDTO.getTempoPreparazioneMinutes());
-                    existing.setNote(cocktailDTO.getNote());
+                    // Aggiorna solo i campi non-null ricevuti nel DTO
+                    if (cocktailDTO.getNome() != null) {
+                        existing.setNome(cocktailDTO.getNome());
+                    }
+                    if (cocktailDTO.getDescrizione() != null) {
+                        existing.setDescrizione(cocktailDTO.getDescrizione());
+                    }
+                    if (cocktailDTO.getTempoPreparazioneMinutes() != null) {
+                        existing.setTempoPreparazioneMinutes(cocktailDTO.getTempoPreparazioneMinutes());
+                    }
+                    if (cocktailDTO.getNote() != null) {
+                        existing.setNote(cocktailDTO.getNote());
+                    }
                     Cocktail updated = cocktailRepository.save(existing);
                     return convertToDTO(updated);
                 });

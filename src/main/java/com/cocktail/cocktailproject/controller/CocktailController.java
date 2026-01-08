@@ -113,7 +113,8 @@ public class CocktailController {
     @Operation(summary = "Aggiorna un cocktail", description = "Aggiorna i dati di un cocktail esistente")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Cocktail aggiornato con successo"),
-            @ApiResponse(responseCode = "404", description = "Cocktail non trovato")
+            @ApiResponse(responseCode = "404", description = "Cocktail non trovato"),
+            @ApiResponse(responseCode = "400", description = "Dati non validi")
     })
     @PutMapping("/{id}")
     public ResponseEntity<CocktailDTO> updateCocktail(
@@ -121,9 +122,18 @@ public class CocktailController {
             @PathVariable Long id,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Dati aggiornati del cocktail", required = true)
             @RequestBody CocktailDTO cocktailDTO) {
-        Optional<CocktailDTO> updated = cocktailService.updateCocktail(id, cocktailDTO);
-        return updated.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        try {
+            Optional<CocktailDTO> updated = cocktailService.updateCocktail(id, cocktailDTO);
+            return updated.map(ResponseEntity::ok)
+                    .orElseGet(() -> ResponseEntity.notFound().build());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception e) {
+            // Log l'errore per debugging
+            System.err.println("Errore durante l'aggiornamento del cocktail " + id + ": " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
