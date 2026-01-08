@@ -11,6 +11,9 @@ import com.cocktail.cocktailproject.repository.IngredienteRepository;
 import com.cocktail.cocktailproject.repository.PreparazioneRepository;
 import com.cocktail.cocktailproject.repository.UserFavoritoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,6 +47,12 @@ public class CocktailService {
                 .collect(Collectors.toList());
     }
 
+    // Ottieni tutti i cocktail con paginazione
+    public Page<CocktailDTO> getAllCocktails(Pageable pageable) {
+        return cocktailRepository.findAll(pageable)
+                .map(this::convertToDTO);
+    }
+
     // Ottieni un cocktail per ID
     public Optional<CocktailDTO> getCocktailById(Long id) {
         return cocktailRepository.findById(id)
@@ -56,6 +65,12 @@ public class CocktailService {
                 .stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+
+    // Cerca cocktail per nome con paginazione
+    public Page<CocktailDTO> searchByName(String nome, Pageable pageable) {
+        return cocktailRepository.findByNomeContainingIgnoreCase(nome, pageable)
+                .map(this::convertToDTO);
     }
 
     // Crea un nuovo cocktail con ingredienti e preparazione
@@ -239,5 +254,11 @@ public class CocktailService {
                 .stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+
+    // Ottieni tutti gli ingredienti con paginazione
+    public Page<IngredientiDTO> getAllIngredients(Pageable pageable) {
+        return ingredienteRepository.findAll(pageable)
+                .map(this::convertToDTO);
     }
 }
