@@ -2,6 +2,7 @@ package com.cocktail.cocktailproject.controller;
 
 import com.cocktail.cocktailproject.dto.CocktailDTO;
 import com.cocktail.cocktailproject.dto.CreateCocktailRequestDTO;
+import com.cocktail.cocktailproject.dto.IngredientiDTO;
 import com.cocktail.cocktailproject.service.CocktailService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -142,4 +143,18 @@ public class CocktailController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    @Operation(summary =  "Ottieni tutti gli ingredienti disponibili", description = "Restituisce una lista di tutti gli ingredienti presenti nel sistema")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista ingredienti restituita con successo")
+    })
+    @GetMapping("/ingredients")
+    public ResponseEntity<List<IngredientiDTO>> getAllIngredients() {
+        List<IngredientiDTO> ingredients = cocktailService.getAllIngredients();
+        return ResponseEntity.ok(ingredients);
+    }
+
+
+
+
 }
