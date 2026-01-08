@@ -29,12 +29,28 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * KeycloakUserService - Gestione utenti su Keycloak
+ * KeycloakUserService - Integrazione con Keycloak per autenticazione e gestione utenti
  * 
- * Questo service comunica con l'API Admin di Keycloak per:
- * - Verificare se un utente esiste già
- * - Creare nuovi utenti
- * - Assegnare ruoli
+ * Operazioni supportate:
+ * 1. Login ROPC (Resource Owner Password Credentials)
+ *    - L'utente invia username/password
+ *    - Keycloak restituisce access_token JWT
+ *    - Token usato per autenticare le chiamate API protette
+ * 
+ * 2. Registrazione utenti
+ *    - Crea nuovo utente su Keycloak
+ *    - Imposta password
+ *    - Assegna ruolo di default (USER)
+ *    - Verifica unicità username ed email
+ * 
+ * 3. Gestione ruoli
+ *    - Assegna ruoli realm agli utenti
+ *    - I ruoli determinano i permessi (es: SOLDIER per operazioni write)
+ * 
+ * Configurazione:
+ * - Le credenziali admin Keycloak sono in application.properties
+ * - Il realm di destinazione è configurabile
+ * - Supporta client con o senza client_secret
  */
 @Service
 public class KeycloakUserService {

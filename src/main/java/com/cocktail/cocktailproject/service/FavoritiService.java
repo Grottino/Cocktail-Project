@@ -14,8 +14,17 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * Service per gestire i cocktail preferiti degli utenti
- * L'ID utente viene estratto dal JWT token di Keycloak
+ * FavoritiService - Gestione cocktail preferiti per utenti autenticati
+ * 
+ * Come funziona:
+ * - L'ID utente (UUID) viene estratto dal JWT token di Keycloak (claim 'sub')
+ * - Ogni utente può avere una lista personale di cocktail preferiti
+ * - La relazione user-cocktail è Many-to-Many (un utente → molti cocktail preferiti)
+ * - I favoriti sono persistiti nella tabella user_favoriti
+ * 
+ * Vincoli:
+ * - Un utente non può aggiungere lo stesso cocktail due volte ai preferiti
+ * - Se un cocktail viene eliminato, i favoriti associati vengono cancellati in cascata
  */
 @Service
 public class FavoritiService {

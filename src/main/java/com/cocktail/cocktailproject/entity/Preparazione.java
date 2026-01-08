@@ -8,13 +8,29 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
 /**
- * Entity Preparazione - Rappresenta uno STEP della ricetta
- * Collega: Cocktail + Ingrediente + Quantità + Istruzioni
+ * Entity Preparazione - Rappresenta uno STEP della ricetta di un cocktail
+ * 
+ * Tabella: preparazione (junction table tra cocktail e ingredienti con dati aggiuntivi)
+ * 
+ * Campi:
+ * - id: Chiave primaria auto-incrementale
+ * - cocktailId: FK verso cocktail (obbligatorio)
+ * - ingredienteId: FK verso ingredienti (obbligatorio)
+ * - quantita: Quantità numerica (DECIMAL 8,2)
+ * - unita: Unità di misura (es: "ml", "oz", "cucchiaini", max 30 caratteri)
+ * - stepOrder: Numero dello step nella sequenza (obbligatorio, determina l'ordine)
+ * - istruzione: Istruzioni testuali per lo step (TEXT, opzionale)
  * 
  * Esempio per un Margarita:
- * Step 1: 2 oz tequila
- * Step 2: 1 oz lime juice
- * Step 3: 0.5 oz triple sec
+ * Step 1: ingredienteId=1 (tequila), quantita=2.00, unita="oz", istruzione="Versare la tequila"
+ * Step 2: ingredienteId=5 (lime juice), quantita=1.00, unita="oz", istruzione="Aggiungere lime"
+ * Step 3: ingredienteId=7 (triple sec), quantita=0.50, unita="oz", istruzione="Aggiungere triple sec"
+ * 
+ * Relazioni:
+ * - N:1 con Cocktail (molti step appartengono a un cocktail)
+ * - N:1 con Ingrediente (molti step usano lo stesso ingrediente)
+ * 
+ * Cancellazione cascata: quando un cocktail viene eliminato, tutti i suoi step vengono cancellati.
  */
 @Entity
 @Table(name = "preparazione")
