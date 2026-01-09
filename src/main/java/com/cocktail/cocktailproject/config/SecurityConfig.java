@@ -1,5 +1,6 @@
 package com.cocktail.cocktailproject.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -10,6 +11,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * SecurityConfig - Due catene di filtri separate:
@@ -92,6 +94,23 @@ public class SecurityConfig {
         });
 
         return converter;
+    }
+
+    // Bean per ObjectMapper - configurato per ignorare campi sconosciuti
+    @Bean
+    public ObjectMapper objectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(
+            com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
+            false
+        );
+        return mapper;
+    }
+
+    // Bean per RestTemplate - usato per chiamate HTTP a Keycloak
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
     }
 }
 

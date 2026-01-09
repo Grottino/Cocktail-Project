@@ -81,12 +81,12 @@ public class KeycloakUserService {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(KeycloakUserService.class);
     private final ObjectMapper objectMapper;
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
     
-    public KeycloakUserService() {
-        this.objectMapper = new ObjectMapper();
-        // Ignora campi sconosciuti nel JSON
-        this.objectMapper.configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    // Constructor Injection per ObjectMapper e RestTemplate
+    public KeycloakUserService(ObjectMapper objectMapper, RestTemplate restTemplate) {
+        this.objectMapper = objectMapper;
+        this.restTemplate = restTemplate;
     }
 
     /**
