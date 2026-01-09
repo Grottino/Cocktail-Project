@@ -2,6 +2,21 @@
 
 Applicazione Spring Boot che espone API REST per gestire cocktail, ingredienti, passaggi di preparazione e preferiti. La sicurezza è affidata a Keycloak (JWT), i dati vivono su MySQL e la documentazione è navigabile tramite Swagger. Con Docker Compose l'ambiente include tre contenitori: l'app Spring Boot (porta 8080), MySQL (3306) e Keycloak (8081).
 
+## 📑 Indice
+
+- [🧰 Tecnologie](#-tecnologie)
+- [🚀 Avvio Rapido](#-avvio-rapido)
+- [🏗️ Architettura](#-architettura)
+- [📚 API Endpoints](#-api-endpoints)
+- [🎯 Ottimizzazioni Implementate](#-ottimizzazioni-implementate)
+- [🧭 Tutorial: Login, CRUD e Favoriti](#-tutorial-login-crud-e-favoriti)
+- [🔐 Dettagli Sicurezza](#-dettagli-sicurezza)
+- [🔧 Sviluppo Locale](#-sviluppo-locale)
+- [🐳 Docker](#-docker)
+- [📝 Note di Sviluppo](#-note-di-sviluppo)
+- [🤝 Contribuire](#-contribuire)
+- [📄 Licenza](#-licenza)
+
 ## 🧰 Tecnologie
 - Framework: Spring Boot 4.0.0 (parent in `pom.xml`)
 - Linguaggio: Java 17
@@ -56,7 +71,7 @@ docker compose logs -f cocktail-app
 ```
 cocktail-project/
 ├── src/main/java/com/cocktail/cocktailproject/
-│   ├── config/          # Configurazioni (Security, Swagger)
+│   ├── config/          # Configurazioni (Security, Swagger, Bean globali)
 │   ├── controller/      # REST Controllers (Cocktail, Auth, Favoriti)
 │   ├── dto/             # Data Transfer Objects
 │   ├── entity/          # JPA Entities
@@ -68,12 +83,36 @@ cocktail-project/
 ```
 
 ### Componenti
-- Entity: `Cocktail`, `Ingrediente`, `Preparazione`, `UserFavorito`
-- DTO: `CocktailDTO`, `CreateCocktailRequestDTO`, `IngredientiDTO`, `LoginRequestDTO`, `TokenResponseDTO`, `UserRegistrationDTO`
-- Repository: `CocktailRepository`, `IngredienteRepository`, `PreparazioneRepository`, `UserFavoritoRepository`
-- Service: `CocktailService`, `FavoritiService`, `KeycloakUserService`
-- Controller: `CocktailController`, `AuthController`, `FavoritiController`
-- Config: `SecurityConfig` (permessi OAuth2/JWT), `SpringDocConfig` (Swagger)
+- **Entity:** `Cocktail`, `Ingrediente`, `Preparazione`, `UserFavorito`
+- **DTO:** `CocktailDTO`, `CreateCocktailRequestDTO`, `IngredientiDTO`, `LoginRequestDTO`, `TokenResponseDTO`, `UserRegistrationDTO`
+- **Repository:** `CocktailRepository`, `IngredienteRepository`, `PreparazioneRepository`, `UserFavoritoRepository`
+- **Service:** `CocktailService` (constructor injection), `FavoritiService`, `KeycloakUserService` (constructor injection)
+- **Controller:** `CocktailController`, `AuthController`, `FavoritiController`
+- **Config:** `SecurityConfig` (permessi OAuth2/JWT, ObjectMapper Bean, RestTemplate Bean), `SpringDocConfig` (Swagger)
+
+### Dependency Injection
+
+Tutti i service utilizzano **Constructor Injection** (best practice Spring moderno):
+```java
+@Service
+public class CocktailService {
+    private final CocktailRepository cocktailRepository;
+    private final IngredienteRepository ingredienteRepository;
+    
+    public CocktailService(
+            CocktailRepository cocktailRepository,
+            IngredienteRepository ingredienteRepository) {
+        this.cocktailRepository = cocktailRepository;
+        this.ingredienteRepository = ingredienteRepository;
+    }
+}
+```
+
+**Vantaggi:**
+- ✅ Dipendenze sempre disponibili e thread-safe
+- ✅ Cambio facile tra implementazioni (es: switch database)
+- ✅ Testing semplificato (mocking facile)
+- ✅ Immutabilità (campi `final`)
 
 ### Permessi e Sicurezza
 - Pubblico: `/api/auth/**`, Swagger (`/swagger-ui/**`, `/v3/api-docs/**`), tutte le `GET` su `/api/cocktails/**`
@@ -462,11 +501,28 @@ docker compose logs -f mysql
 ```
 
 ## 📝 Note di Sviluppo
-- JPA usa `spring.jpa.hibernate.ddl-auto=update` per aggiornare automaticamente lo schema.
-- Dati di esempio caricati da `docker-entrypoint-initdb.d/init.sql`.
-- Health check configurato su `/api/cocktails` nel compose.
-- CORS attivo per tutti gli origins (`*`).
-- Paginazione: tutti gli endpoint con lista accettano `page` e `size` (default `10`).
+
+### Configurazione e Pattern
+- **Dependency Injection:** Constructor injection su tutti i service (immutabilità, testabilità)
+- **Bean Centrali:** ObjectMapper e RestTemplate definiti come Bean Spring in SecurityConfig
+- **JPA Hibernate:** Usa `spring.jpa.hibernate.ddl-auto=update` per aggiornare automaticamente lo schema
+- **DTO e Conversioni:** Uso di costruttori (Lombok @AllArgsConstructor) invece di setter
+- **Paginazione:** Tutti gli endpoint che restituiscono liste sono paginati con `Pageable`
+  - `page`: numero della pagina (default 0)
+  - `size`: elementi per pagina (default 10)
+  - Nessun metodo legacy non-paginato per evitare OOM con dataset grandi
+
+### Performance e Ottimizzazioni
+- **N+1 Query Fix:** Ingredienti caricati in batch map durante la conversione DTO
+- **Scalabilità:** Paginazione obbligatoria previene memory leaks
+- **Reuso:** ObjectMapper e RestTemplate condivisi (1 istanza per tutta l'app)
+- **Dati di Test:** Caricati automaticamente da `docker-entrypoint-initdb.d/init.sql`
+
+### Sicurezza
+- **CORS:** Attivo per tutti gli origins (`*`) - da limitare in produzione
+- **Health Check:** Configurato su `/api/cocktails` nel docker-compose
+- **JWT Validation:** Keycloak come identity provider, JWT validato su ogni richiesta protetta
+- **Password Storage:** Gestito da Keycloak, mai in testo chiaro
 
 ## 🤝 Contribuire
 Progetto didattico per valutare competenze Java/Spring Boot. PR e issue sono benvenute.
