@@ -10,7 +10,6 @@ import com.cocktail.cocktailproject.repository.CocktailRepository;
 import com.cocktail.cocktailproject.repository.IngredienteRepository;
 import com.cocktail.cocktailproject.repository.PreparazioneRepository;
 import com.cocktail.cocktailproject.repository.UserFavoritoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,27 +32,21 @@ import java.util.stream.Collectors;
 @Service
 public class CocktailService {
 
-    @Autowired
-    private CocktailRepository cocktailRepository;
+    private final CocktailRepository cocktailRepository;
+    private final IngredienteRepository ingredienteRepository;
+    private final PreparazioneRepository preparazioneRepository;
+    private final UserFavoritoRepository userFavoritoRepository;
 
-    @Autowired
-    private IngredienteRepository ingredienteRepository;
-
-    @Autowired
-    private PreparazioneRepository preparazioneRepository;
-    
-    @Autowired
-    private UserFavoritoRepository userFavoritoRepository;
-
-    /**
-     * Ottieni tutti i cocktail senza paginazione (versione legacy)
-     * @return Lista di tutti i cocktail nel database
-     */
-    public List<CocktailDTO> getAllCocktails() {
-        return cocktailRepository.findAll()
-                .stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    // Constructor Injection (Spring 4.3+): più testabile, immutabile e esplicito
+    public CocktailService(
+            CocktailRepository cocktailRepository,
+            IngredienteRepository ingredienteRepository,
+            PreparazioneRepository preparazioneRepository,
+            UserFavoritoRepository userFavoritoRepository) {
+        this.cocktailRepository = cocktailRepository;
+        this.ingredienteRepository = ingredienteRepository;
+        this.preparazioneRepository = preparazioneRepository;
+        this.userFavoritoRepository = userFavoritoRepository;
     }
 
     /**
@@ -79,16 +72,6 @@ public class CocktailService {
     /**
      * Cerca cocktail per nome senza paginazione (versione legacy)
      * @param nome Stringa da cercare nel nome (case-insensitive, ricerca parziale)
-     * @return Lista di cocktail che corrispondono alla ricerca
-     */
-    public List<CocktailDTO> searchByName(String nome) {
-        return cocktailRepository.findByNomeContainingIgnoreCase(nome)
-                .stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-    }
-
-    /**
      * Cerca cocktail per nome con paginazione (metodo raccomandato)
      * @param nome Stringa da cercare nel nome (case-insensitive, ricerca parziale)
      * @param pageable Parametri di paginazione
@@ -287,21 +270,26 @@ public class CocktailService {
         // Carica gli step ordinati
         List<Preparazione> steps = preparazioneRepository.findByCocktailIdOrderByStepOrderAsc(cocktail.getId());
         
+        // Carica tutti gli ingredienti una volta sola (evita N+1 query problem)
+        Map<Long, String> ingredientiMap = new HashMap<>();
+        for (Preparazione step : steps) {
+            if (!ingredientiMap.containsKey(step.getIngredienteId())) {
+                String nomeIngrediente = ingredienteRepository.findById(step.getIngredienteId())
+                        .map(Ingrediente::getNome)
+                        .orElse("Ingrediente sconosciuto");
+                ingredientiMap.put(step.getIngredienteId(), nomeIngrediente);
+            }
+        }
+        
         // Converte ogni step in StepPreparazioneDTO
         List<CocktailDTO.StepPreparazioneDTO> stepsDTO = steps.stream()
-                .map(step -> {
-                    String nomeIngrediente = ingredienteRepository.findById(step.getIngredienteId())
-                            .map(Ingrediente::getNome)
-                            .orElse("Ingrediente sconosciuto");
-                    
-                    return new CocktailDTO.StepPreparazioneDTO(
-                            step.getStepOrder(),
-                            nomeIngrediente,
-                            step.getQuantita() != null ? step.getQuantita().toString() : null,
-                            step.getUnita(),
-                            step.getIstruzione()
-                    );
-                })
+                .map(step -> new CocktailDTO.StepPreparazioneDTO(
+                        step.getStepOrder(),
+                        ingredientiMap.get(step.getIngredienteId()),
+                        step.getQuantita() != null ? step.getQuantita().toString() : null,
+                        step.getUnita(),
+                        step.getIstruzione()
+                ))
                 .collect(Collectors.toList());
         
         dto.setPreparazione(stepsDTO);
@@ -328,20 +316,7 @@ public class CocktailService {
      * @return DTO semplice con solo il nome
      */
     private IngredientiDTO convertToDTO(Ingrediente ingrediente) {
-        IngredientiDTO dto = new IngredientiDTO();
-        dto.setNome(ingrediente.getNome());
-        return dto;
-    }
-
-    /**
-     * Ottieni tutti gli ingredienti disponibili senza paginazione (versione legacy)
-     * @return Lista completa di tutti gli ingredienti nel sistema
-     */
-    public List<IngredientiDTO> getAllIngredients() {
-        return ingredienteRepository.findAll()
-                .stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+        return new IngredientiDTO(ingrediente.getNome());
     }
 
     /**
