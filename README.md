@@ -124,6 +124,144 @@ Client → Controller → Service → Repository/JPA → MySQL → conversione i
 
 ## 🧭 Tutorial: Login, CRUD e Favoriti
 
+### 📱 Opzione 1: Con Swagger UI (Consigliato)
+
+Accedi a **http://localhost:8080/swagger-ui.html** per una navigazione visuale e intuitiva.
+
+#### 1) Registrazione tramite Swagger
+1. Apri Swagger UI
+2. Clicca su **POST** `/api/auth/register`
+3. Clicca **Try it out**
+4. Compila il body JSON con i tuoi dati:
+   ```json
+   {
+     "username": "newuser",
+     "email": "newuser@example.com",
+     "firstName": "John",
+     "lastName": "Doe",
+     "password": "MyPassword123!",
+     "confirmPassword": "MyPassword123!"
+   }
+   ```
+5. Clicca **Execute**
+6. Attendi la risposta di successo
+
+#### 2) Login tramite Swagger
+1. Clicca su **POST** `/api/auth/login`
+2. Clicca **Try it out**
+3. Compila il body JSON con le **stesse credenziali appena usate nella registrazione**:
+   ```json
+   {
+     "username": "newuser",
+     "password": "MyPassword123!"
+   }
+   ```
+4. Clicca **Execute**
+5. **Copia il valore di `access_token`** dalla risposta
+
+#### 2) Autorizzazione globale in Swagger
+1. Clicca sul pulsante **Authorize** (lock icon) in alto a destra
+2. Nel campo "Bearer Token" incolla il token copiato (senza `Bearer `)
+3. Clicca **Authorize** e poi **Close**
+4. Tutti gli endpoint protetti ora useranno automaticamente il token
+
+#### 3) CRUD Cocktails tramite Swagger
+
+**Visualizza lista cocktail (pubblico):**
+- Clicca su **GET** `/api/cocktails`
+- Clicca **Try it out**
+- Imposta `page: 0` e `size: 10`
+- Clicca **Execute**
+
+**Ricerca per nome:**
+- Clicca su **GET** `/api/cocktails/search`
+- Clicca **Try it out**
+- Compila `nome: Margarita` e paginazione
+- Clicca **Execute**
+
+**Dettaglio cocktail:**
+- Clicca su **GET** `/api/cocktails/{id}`
+- Clicca **Try it out**
+- Inserisci ID (es. `1`)
+- Clicca **Execute**
+
+**Crea cocktail (richiede token SOLDIER):**
+- Clicca su **POST** `/api/cocktails`
+- Clicca **Try it out**
+- Compila il body:
+   ```json
+   {
+     "nome": "Margarita",
+     "descrizione": "Cocktail classico messicano",
+     "tempoPreparazioneMinutes": 5,
+     "note": "Servire freddo",
+     "ingredienti": [
+       { "nome": "tequila", "quantita": 2, "unita": "oz" },
+       { "nome": "lime juice", "quantita": 1, "unita": "oz" },
+       { "nome": "triple sec", "quantita": 0.5, "unita": "oz" }
+     ],
+     "preparazione": "Shakerare con ghiaccio e servire"
+   }
+   ```
+- Clicca **Execute**
+
+**Aggiorna cocktail:**
+- Clicca su **PUT** `/api/cocktails/{id}`
+- Clicca **Try it out**
+- Inserisci ID
+- Compila il body con i dati aggiornati
+- Clicca **Execute**
+
+**Elimina cocktail:**
+- Clicca su **DELETE** `/api/cocktails/{id}`
+- Clicca **Try it out**
+- Inserisci ID
+- Clicca **Execute**
+
+**Visualizza ingredienti:**
+- Clicca su **GET** `/api/cocktails/ingredients`
+- Clicca **Try it out**
+- Imposta paginazione
+- Clicca **Execute**
+
+#### 4) Gestione Favoriti tramite Swagger (autenticazione richiesta)
+
+**Elenco preferiti:**
+- Clicca su **GET** `/api/favoriti`
+- Clicca **Try it out** → **Execute**
+
+**Aggiungi ai preferiti:**
+- Clicca su **POST** `/api/favoriti/{cocktailId}`
+- Clicca **Try it out**
+- Inserisci `cocktailId` (es. `1`)
+- Clicca **Execute**
+
+**Rimuovi dai preferiti:**
+- Clicca su **DELETE** `/api/favoriti/{cocktailId}`
+- Clicca **Try it out**
+- Inserisci `cocktailId`
+- Clicca **Execute**
+
+**Toggle preferito:**
+- Clicca su **POST** `/api/favoriti/toggle/{cocktailId}`
+- Clicca **Try it out**
+- Inserisci `cocktailId`
+- Clicca **Execute**
+
+**Verifica se nei preferiti:**
+- Clicca su **GET** `/api/favoriti/check/{cocktailId}`
+- Clicca **Try it out**
+- Inserisci `cocktailId`
+- Clicca **Execute**
+
+**Conteggio preferiti:**
+- Clicca su **GET** `/api/favoriti/count`
+- Clicca **Try it out** → **Execute**
+
+---
+
+### 📟 Opzione 2: Con cURL (da terminale)
+
 Di seguito una guida completa per usare il progetto tramite curl. Nota per Windows PowerShell: per impostare una variabile d'ambiente nella sessione usa `$env:NOME = "valore"`.
 
 ### 1) Login e ottenimento del token (Keycloak)
