@@ -46,11 +46,13 @@ public class SecurityConfig {
                         "/webjars/**"
                 ).permitAll()
 
-                // GET cocktails pubblico
+                // GET cocktails PUBBLICI
                 .requestMatchers(HttpMethod.GET, "/api/cocktails/**").permitAll()
 
-                //  ENDPOINT PROTETTI
-                .requestMatchers(HttpMethod.POST, "/api/cocktails/**").hasRole("SOLDIER")
+                // POST cocktails PROTETTA (utenti autenticati)
+                .requestMatchers(HttpMethod.POST, "/api/cocktails/**").authenticated()
+
+                //  ENDPOINT PROTETTI (Admin)
                 .requestMatchers(HttpMethod.PUT, "/api/cocktails/**").hasRole("SOLDIER")
                 .requestMatchers(HttpMethod.DELETE, "/api/cocktails/**").hasRole("SOLDIER")
 
