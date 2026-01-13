@@ -35,4 +35,12 @@ public interface PreparazioneRepository extends JpaRepository<Preparazione, Long
      * @param cocktailId ID del cocktail
      */
     void deleteByCocktailId(Long cocktailId);
+
+    /**
+     * Elimina tutti gli step che usano un determinato ingrediente
+     * Usato prima di eliminare un ingrediente
+     *
+     * @param ingredienteId ID dell'ingrediente
+     */
+    void deleteByIngredienteId(Long ingredienteId);
 }

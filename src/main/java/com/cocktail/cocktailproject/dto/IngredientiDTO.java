@@ -8,6 +8,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class IngredientiDTO {
+    private Long id;
     private String nome;
-    
+
+    public IngredientiDTO(String nome, Long id) {
+        this.nome = nome;
+        this.id = id;
+    }
+
 }

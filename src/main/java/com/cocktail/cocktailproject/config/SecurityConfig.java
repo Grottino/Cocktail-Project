@@ -58,6 +58,11 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/cocktails/**").hasRole("SOLDIER")
                 .requestMatchers(HttpMethod.DELETE, "/api/cocktails/**").hasRole("SOLDIER")
 
+                // GET ingredients PUBBLICI
+                .requestMatchers(HttpMethod.GET, "/api/ingredients/**").permitAll()
+                // DELETE ingredients PROTETTA (utenti autenticati)
+                .requestMatchers(HttpMethod.DELETE, "/api/ingredients/**").hasRole("SOLDIER")
+
                 // Favoriti → utenti autenticati
                 .requestMatchers("/api/favoriti/**").authenticated()
 
