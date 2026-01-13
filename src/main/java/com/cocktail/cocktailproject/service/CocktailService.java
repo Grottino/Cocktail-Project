@@ -2,7 +2,6 @@ package com.cocktail.cocktailproject.service;
 
 import com.cocktail.cocktailproject.dto.CocktailDTO;
 import com.cocktail.cocktailproject.dto.CreateCocktailRequestDTO;
-import com.cocktail.cocktailproject.dto.IngredientiDTO;
 import com.cocktail.cocktailproject.entity.Cocktail;
 import com.cocktail.cocktailproject.entity.Ingrediente;
 import com.cocktail.cocktailproject.entity.Preparazione;
@@ -310,22 +309,5 @@ public class CocktailService {
         return cocktail;
     }
 
-    /**
-     * Converte un'entity Ingrediente in DTO
-     * @param ingrediente Entity dal database
-     * @return DTO semplice con solo il nome
-     */
-    private IngredientiDTO convertToDTO(Ingrediente ingrediente) {
-        return new IngredientiDTO(ingrediente.getNome());
-    }
-
-    /**
-     * Ottieni tutti gli ingredienti disponibili con paginazione (metodo raccomandato)
-     * @param pageable Parametri di paginazione
-     * @return Pagina di ingredienti con metadata
-     */
-    public Page<IngredientiDTO> getAllIngredients(Pageable pageable) {
-        return ingredienteRepository.findAll(pageable)
-                .map(this::convertToDTO);
-    }
+    
 }

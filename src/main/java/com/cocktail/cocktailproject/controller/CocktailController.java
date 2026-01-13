@@ -22,6 +22,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * CocktailController - Endpoint REST per gestione dei cocktail.
+ * Contiene operazioni CRUD e ricerca con paginazione.
+ */
 @RestController
 @RequestMapping("/api/cocktails")
 @CrossOrigin(origins = "*")
@@ -38,8 +42,7 @@ public class CocktailController {
      */
     @Operation(summary = "Ottieni tutti i cocktail", description = "Restituisce una lista paginata di cocktail disponibili nel sistema")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Lista paginata di cocktail recuperata con successo",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class)))
+            @ApiResponse(responseCode = "200", description = "Lista paginata di cocktail recuperata con successo")
     })
     @GetMapping
     public ResponseEntity<Page<CocktailDTO>> getAllCocktails(
@@ -172,20 +175,7 @@ public class CocktailController {
         return ResponseEntity.notFound().build();
     }
 
-    @Operation(summary =  "Ottieni tutti gli ingredienti disponibili", description = "Restituisce una lista paginata di tutti gli ingredienti presenti nel sistema")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Lista paginata ingredienti restituita con successo")
-    })
-    @GetMapping("/ingredients")
-    public ResponseEntity<Page<IngredientiDTO>> getAllIngredients(
-            @Parameter(description = "Numero della pagina (base 0)")
-            @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Numero di ingredienti per pagina (default 10)")
-            @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<IngredientiDTO> ingredients = cocktailService.getAllIngredients(pageable);
-        return ResponseEntity.ok(ingredients);
-    }
+    
 
 
 

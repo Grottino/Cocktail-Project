@@ -1,6 +1,8 @@
 package com.cocktail.cocktailproject.repository;
 
 import com.cocktail.cocktailproject.entity.Ingrediente;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -22,16 +24,17 @@ import java.util.Optional;
 public interface IngredienteRepository extends JpaRepository<Ingrediente, Long> {
     
     /**
-     * Cerca ingrediente per nome esatto (case-sensitive)
-     * @param nome Nome da cercare (deve corrispondere esattamente)
-     * @return Optional contenente l'ingrediente se trovato
-     */
-    Optional<Ingrediente> findByNome(String nome);
-    
-    /**
      * Cerca ingrediente per nome ignorando maiuscole/minuscole (raccomandato)
      * @param nome Nome da cercare ("gin" trova "Gin", "GIN", "gin")
      * @return Optional contenente l'ingrediente se trovato
      */
     Optional<Ingrediente> findByNomeIgnoreCase(String nome);
+    
+    /**
+     * Cerca ingredienti per nome parziale con paginazione (case-insensitive)
+     * @param nome Stringa da cercare nel nome ("lim" trova "lime", "limone", ecc.)
+     * @param pageable Parametri di paginazione
+     * @return Pagina di ingredienti che corrispondono alla ricerca
+     */
+    Page<Ingrediente> findByNomeContainingIgnoreCase(String nome, Pageable pageable);
 }
